@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.cheesePlease4;
+package com.cheesePlease;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
@@ -19,28 +19,50 @@ import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.math.MathUtils;
+
 
 /**
  *
  * @author t-roy
  */
-public class CheesePlease4 extends Game{
+public class CheeseLevel extends Game{
     public Stage mainStage;
+    private Stage uiStage;
     private AnimatedActor mousey;
     private BaseActor cheese;
     private BaseActor floor;
     private BaseActor winText;
     private boolean win;
+    private float timeElapsed;
+    private Label timeLabel;
+    
+    //game world dimensions
+    final int mapWidth = 800;
+    final int mapHeight = 800;
+    
+    //window dimensions
+    final int viewWidth = 640;
+    final int viewHeight = 480;
+    
+    
+  
   
     
     
     public void create(){
         win = false;
-          
+        timeElapsed = 0;
+                  
         mainStage = new Stage();
+        uiStage = new Stage();
         
         floor = new BaseActor();
-        floor.setTexture(new Texture(Gdx.files.internal("assets/tiles.jpg")));
+        floor.setTexture(new Texture(Gdx.files.internal("assets/tiles-800-800.jpg")));
         floor.setPosition(0, 0);
         mainStage.addActor(floor);
         
@@ -69,11 +91,19 @@ public class CheesePlease4 extends Game{
         mousey.setPosition( 20, 20 );
         mainStage.addActor(mousey);
         
+        BitmapFont font = new BitmapFont();
+        String text = "Time: 0";
+        LabelStyle style = new LabelStyle(font, Color.NAVY);
+        timeLabel = new Label(text,style);
+        timeLabel.setFontScale(2);
+        timeLabel.setPosition(500,400);
+        uiStage.addActor(timeLabel);
+        
         winText = new BaseActor();
         winText.setTexture(new Texture(Gdx.files.internal("assets/you-win.png")));
         winText.setPosition(170,60);
         winText.setVisible(false);
-        mainStage.addActor(winText);
+        uiStage.addActor(winText);
         
         
     }
@@ -86,17 +116,38 @@ public class CheesePlease4 extends Game{
         mousey.velocityY = 0;
         
         if (Gdx.input.isKeyPressed(Keys.LEFT))
-            mousey.velocityX -= 100;
+            mousey.velocityX -= 200;
         if (Gdx.input.isKeyPressed(Keys.RIGHT))
-            mousey.velocityX += 100;
+            mousey.velocityX += 200;
         if (Gdx.input.isKeyPressed(Keys.UP))
-            mousey.velocityY +=100;
+            mousey.velocityY +=200;
         if (Gdx.input.isKeyPressed(Keys.DOWN))
-            mousey.velocityY -=100;
+            mousey.velocityY -=200;
         
         //update
         float dt = Gdx.graphics.getDeltaTime();
+        
+         if (!win){
+            timeElapsed +=dt;
+            timeLabel.setText("Time: " + (int)timeElapsed);
+        }
         mainStage.act(dt);
+         
+        //keep mousey on screen
+        /* long way of doing this
+        if (mousey.getX() < 0)
+            mousey.setX(0);
+        if (mousey.getX() > mapWidth - mousey.getWidth())
+            mousey.setX(mapWidth - mousey.getWidth());
+*/
+        //short way
+        mousey.setX(MathUtils.clamp(mousey.getX(), 0,
+                mapWidth - mousey.getWidth()));
+        mousey.setY(MathUtils.clamp(mousey.getY(), 0, 
+                    mapHeight - mousey.getHeight()));
+              
+        uiStage.act(dt);
+
         
         //check win condition
         Rectangle cheeseRectangle = cheese.getBoundingRectangle();
@@ -131,7 +182,19 @@ public class CheesePlease4 extends Game{
         Gdx.gl.glClearColor(0.8f, 0.8f, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         
+        Camera cam = mainStage.getCamera();
+        
+        //center camera on player
+        cam.position.set(mousey.getX() + mousey.getOriginX(),
+                        mousey.getY() + mousey.getOriginY(), 0);
+        
+        //bound camera to layout
+        cam.position.x = MathUtils.clamp(cam.position.x, viewWidth/2, mapWidth - viewWidth/2);
+        cam.position.y = MathUtils.clamp(cam.position.y, viewHeight/2, mapHeight - viewHeight/2);
+        cam.update();
+        
         mainStage.draw();
+        uiStage.draw();
         
     }
 }

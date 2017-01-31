@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.cheesePlease4;
+package com.cheesePlease;
 
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 
@@ -11,10 +11,10 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
  *
  * @author t-roy
  */
-public class Launcher4 {
+public class Launcher5 {
     public static void main (String [] args){
         
-    CheesePlease4 myProgram = new CheesePlease4();
+    CheesePlease5 myProgram = new CheesePlease5();
     LwjglApplication launcher = new LwjglApplication(myProgram);
     
     }
